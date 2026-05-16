@@ -1,0 +1,5 @@
+release/
+*.tmp
+.env
+.DS_Store
+

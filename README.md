@@ -1,0 +1,83 @@
+# smoothnas-plugin-wolf
+
+SmoothNAS plugin manifests for [Games-on-Whales Wolf](https://github.com/games-on-whales/wolf), a game streaming host for Moonlight clients.
+
+Wolf is a different shape from the llama.cpp and gh-runner reference plugins: the Wolf container is a control plane that starts per-session application containers on demand. This repo keeps that shape and uses the SmoothNAS plugin protocol rather than baking a static game container list into the manifest.
+
+## Variants
+
+| Manifest | GPU profile | Use when |
+|----------|-------------|----------|
+| `smoothnas-plugin.yaml` | `gpu-nvidia` | Host has an NVIDIA GPU |
+| `smoothnas-plugin-amd.yaml` | `gpu-amd` | Host has an AMD GPU |
+| `smoothnas-plugin-intel.yaml` | `gpu-intel` | Host has an Intel iGPU |
+
+All variants use the same image: `ghcr.io/rakuensoftware/smoothnas-plugin-wolf:VERSION`. The release workflow builds that image from upstream `ghcr.io/games-on-whales/wolf:stable`, pins the pushed digest, and attaches digest-pinned manifests to each GitHub release.
+
+## Protocol Requirements
+
+Wolf needs two SmoothNAS plugin protocol features beyond a plain HTTP service:
+
+1. `profiles/wolf-runtime.yaml` must be installed as a SmoothNAS plugin profile. It mounts `/run/smoothnas-runtime/docker.sock` into the Wolf container as `/var/run/docker.sock`, passes input and udev devices, and grants the capabilities Wolf needs for virtual input and per-session application containers.
+2. `ports[].hostExpose: true` must publish Wolf's Moonlight ports directly on the SmoothNAS host. The nginx `/plugins/<name>/` proxy path is HTTP-only and is not sufficient for Moonlight RTSP/RTP traffic.
+
+The manifests intentionally omit `ui.embed`: Wolf UI is launched from Moonlight as a streamed application, not as a browser iframe in the SmoothNAS UI.
+
+## Operator Workflow
+
+Install the runtime profile on the SmoothNAS host:
+
+```sh
+sudo install -m 0644 profiles/wolf-runtime.yaml /etc/smoothnas/plugin-profiles.d/wolf-runtime.yaml
+sudo systemctl restart tierd
+```
+
+Then install the manifest matching the host GPU, pick an SSD-backed tier for the `state` volume, and start the plugin. Wolf stores config, TLS material, paired clients, app profiles, and app state under:
+
+```text
+/mnt/<tier>/.plugins/wolf/state/
+```
+
+The plugin also mounts a flat runtime volume at `/run/user/wolf` for Wolf sockets used by per-session containers.
+
+## Exposed Ports
+
+Wolf expects the standard Moonlight ports to be reachable directly:
+
+| Name | Port | Protocol |
+|------|------|----------|
+| HTTPS | 47984 | TCP |
+| HTTP | 47989 | TCP |
+| Control | 47999 | UDP |
+| RTSP | 48010 | TCP |
+| Video | 48100 | UDP |
+| Audio | 48200 | UDP |
+
+If Moonlight discovery does not see the host through mDNS, connect manually from Moonlight. For hosts that need Wolf to advertise a specific address, add a non-empty `WOLF_INTERNAL_IP` config/env override before installing the manifest.
+
+## Current Caveat
+
+These manifests validate against the SmoothNAS v1 schema, but full production use depends on SmoothNAS runtime support for `hostExpose` TCP/UDP bindings and on LXC2Docker handling the Docker API options Wolf passes when it creates application containers. Treat this as the plugin repo side of the protocol until those runtime paths are verified on a SmoothNAS host.
+
+## Local Development
+
+```sh
+docker buildx build -t smoothnas-plugin-wolf:dev .
+```
+
+To sideload a dev image into a SmoothNAS test host, edit the chosen manifest's `artifact.image` to your local tag and install it through the SmoothNAS plugin wizard or `tierd-cli plugin install`.
+
+## Release Flow
+
+`.github/workflows/release.yml` runs on tag push (`v*`):
+
+1. Builds and pushes `ghcr.io/rakuensoftware/smoothnas-plugin-wolf:VERSION`.
+2. Reads the pushed manifest-list digest from buildx.
+3. Rewrites all plugin manifests to `image: ...:VERSION@sha256:...`.
+4. Attaches the three manifests, `wolf-runtime-profile.yaml`, and `index.json` to the GitHub release.
+
+`release-please` owns version bumps for the manifests.
+
+## License
+
+Add a LICENSE file at publish time. This repo only contains SmoothNAS packaging. Upstream Wolf and its image layers carry their own license terms.
