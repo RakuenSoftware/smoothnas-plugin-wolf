@@ -18,21 +18,21 @@ All variants use the same image: `ghcr.io/rakuensoftware/smoothnas-plugin-wolf:V
 
 Wolf needs two SmoothNAS plugin protocol features beyond a plain HTTP service:
 
-1. `profiles/wolf-runtime.yaml` must be installed as a SmoothNAS plugin profile. It mounts `/run/smoothnas-runtime/docker.sock` into the Wolf container as `/var/run/docker.sock`, passes input and udev devices, and grants the capabilities Wolf needs for virtual input and per-session application containers.
+1. SmoothNAS must provide the `wolf-runtime` plugin profile. Current SmoothNAS builds include it as a built-in profile; older builds can sideload `profiles/wolf-runtime.yaml`. It mounts `/run/smoothnas-runtime/docker.sock` into the Wolf container as `/var/run/docker.sock`, passes input and udev devices, and grants the capabilities Wolf needs for virtual input and per-session application containers.
 2. `ports[].hostExpose: true` must publish Wolf's Moonlight ports directly on the SmoothNAS host. The nginx `/plugins/<name>/` proxy path is HTTP-only and is not sufficient for Moonlight RTSP/RTP traffic.
 
 The manifests intentionally omit `ui.embed`: Wolf UI is launched from Moonlight as a streamed application, not as a browser iframe in the SmoothNAS UI.
 
 ## Operator Workflow
 
-Install the runtime profile on the SmoothNAS host:
+On older SmoothNAS builds, install the runtime profile on the host:
 
 ```sh
 sudo install -m 0644 profiles/wolf-runtime.yaml /etc/smoothnas/plugin-profiles.d/wolf-runtime.yaml
 sudo systemctl restart tierd
 ```
 
-Then install the manifest matching the host GPU, pick an SSD-backed tier for the `state` volume, and start the plugin. Wolf stores config, TLS material, paired clients, app profiles, and app state under:
+Current SmoothNAS builds show Wolf in the plugin catalog and already carry the required runtime/GPU profiles. Install the manifest matching the host GPU, pick an SSD-backed tier for the `state` volume, and start the plugin. Wolf stores config, TLS material, paired clients, app profiles, and app state under:
 
 ```text
 /mnt/<tier>/.plugins/wolf/state/
@@ -57,7 +57,7 @@ If Moonlight discovery does not see the host through mDNS, connect manually from
 
 ## Current Caveat
 
-These manifests validate against the SmoothNAS v1 schema, but full production use depends on SmoothNAS runtime support for `hostExpose` TCP/UDP bindings and on LXC2Docker handling the Docker API options Wolf passes when it creates application containers. Treat this as the plugin repo side of the protocol until those runtime paths are verified on a SmoothNAS host.
+These manifests validate against the SmoothNAS v1 schema. Full production use still depends on live-host verification that LXC2Docker handles the Docker API options Wolf passes when it creates application containers.
 
 ## Local Development
 
