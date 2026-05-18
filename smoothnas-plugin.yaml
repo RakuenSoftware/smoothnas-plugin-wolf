@@ -79,6 +79,14 @@ profiles:
   - default-limits
 
 config:
+  - key: SMOOTHNAS_GPU
+    type: gpu
+    label: GPU
+    gpuVendor: nvidia
+    default: ''
+    description: |
+      NVIDIA GPU device to pass through. Leave automatic to use the host
+      default; selecting a device narrows passthrough to that GPU.
   - key: MEMORY_LIMIT
     type: string
     label: Container memory
@@ -103,8 +111,8 @@ config:
   - key: WOLF_ENCODER_NODE
     type: string
     label: Encoder node
-    default: /dev/dri/renderD128
-    description: DRM render node GStreamer uses for encoding; defaults to the render node.
+    default: ''
+    description: DRM render node GStreamer uses for encoding; leave empty to use the render node.
   - key: WOLF_PULSE_IMAGE
     type: string
     label: PulseAudio image
