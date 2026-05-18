@@ -87,15 +87,16 @@ config:
       - value: TRACE
     description: Wolf server log verbosity.
   - key: WOLF_RENDER_NODE
-    type: string
-    label: Render node
-    default: /dev/dri/renderD128
-    description: DRM render node Wolf uses for virtual desktops and vendor detection.
+    type: gpu
+    label: GPU
+    gpuVendor: amd
+    default: ''
+    description: DRM render node Wolf uses for virtual desktops, vendor detection, and encoding.
   - key: WOLF_ENCODER_NODE
     type: string
     label: Encoder node
-    default: /dev/dri/renderD128
-    description: DRM render node GStreamer uses for encoding; defaults to the render node.
+    default: ''
+    description: DRM render node GStreamer uses for encoding; leave empty to use the render node.
   - key: WOLF_PULSE_IMAGE
     type: string
     label: PulseAudio image

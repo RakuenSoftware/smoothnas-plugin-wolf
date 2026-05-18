@@ -32,7 +32,7 @@ sudo install -m 0644 profiles/wolf-runtime.yaml /etc/smoothnas/plugin-profiles.d
 sudo systemctl restart tierd
 ```
 
-Current SmoothNAS builds show Wolf in the plugin catalog and already carry the required runtime/GPU profiles. Install the manifest matching the host GPU, pick an SSD-backed tier for the `state` volume, and start the plugin. Wolf stores config, TLS material, paired clients, app profiles, and app state under:
+Current SmoothNAS builds show one Wolf card in the plugin catalog and already carry the required runtime/GPU profiles. Select the host GPU during install; SmoothNAS chooses the matching NVIDIA, AMD, or Intel manifest, applies the corresponding GPU profile, and pre-fills the render node when the selected GPU uses `/dev/dri`. Pick an SSD-backed tier for the `state` volume, then start the plugin. Wolf stores config, TLS material, paired clients, app profiles, and app state under:
 
 ```text
 /mnt/<tier>/.plugins/wolf/state/
