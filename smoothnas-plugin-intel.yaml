@@ -86,6 +86,11 @@ config:
       - value: DEBUG
       - value: TRACE
     description: Wolf server log verbosity.
+  - key: WOLF_IMAGE_TAG
+    type: string
+    label: Image tag
+    default: fedora-43
+    description: Tag used for Games-on-Whales app images and the default PulseAudio helper image.
   - key: WOLF_RENDER_NODE
     type: gpu
     label: GPU
@@ -100,8 +105,8 @@ config:
   - key: WOLF_PULSE_IMAGE
     type: string
     label: PulseAudio image
-    default: ghcr.io/games-on-whales/pulseaudio:master
-    description: PulseAudio helper image started by Wolf when no audio server is already available.
+    default: ''
+    description: Full PulseAudio helper image override; leave empty to use ghcr.io/games-on-whales/pulseaudio:${WOLF_IMAGE_TAG}.
   - key: WOLF_STOP_CONTAINER_ON_EXIT
     type: select
     label: Stop apps on disconnect
