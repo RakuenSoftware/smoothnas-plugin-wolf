@@ -6,14 +6,133 @@ on:
 
 permissions:
   contents: write
+  packages: write
   pull-requests: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
     steps:
-      - uses: googleapis/release-please-action@v5
+      - id: release
+        uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute lowercase image ref
+        id: image
+        run: echo "ref=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${{ needs.release-please.outputs.version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build + push
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.ref }}
+          provenance: false
+
+  attach-assets:
+    needs:
+      - release-please
+      - publish
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Render manifests with pinned digest
+        env:
+          DIGEST: ${{ needs.publish.outputs.digest }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          python3 <<'PY'
+          import os
+          import re
+
+          version = os.environ["VERSION"]
+          digest = os.environ["DIGEST"]
+          image = f"ghcr.io/rakuensoftware/smoothnas-plugin-wolf:{version}@{digest}"
+
+          for src in [
+              "smoothnas-plugin.yaml",
+              "smoothnas-plugin-amd.yaml",
+              "smoothnas-plugin-intel.yaml",
+          ]:
+              with open(src, encoding="utf-8") as f:
+                  manifest = f.read()
+
+              manifest = re.sub(
+                  r'(?m)^(\s*version:\s*)[^\s#]+(\s*#.*)?$',
+                  rf'\g<1>{version}\2',
+                  manifest,
+                  count=1,
+              )
+              manifest = re.sub(
+                  r'(?m)^(\s*image:\s*)ghcr\.io/rakuensoftware/smoothnas-plugin-wolf:[^\s#]+(?:@sha256:[0-9a-f]+)?(\s*#.*)?$',
+                  rf'\g<1>{image}\2',
+                  manifest,
+                  count=1,
+              )
+
+              with open(f"release/{src}", "w", encoding="utf-8") as f:
+                  f.write(manifest)
+          PY
+          cp profiles/wolf-runtime.yaml release/wolf-runtime-profile.yaml
+          cat > release/index.json <<EOF
+          {
+            "plugin": "wolf",
+            "version": "${VERSION}",
+            "variants": [
+              { "name": "nvidia", "manifest": "smoothnas-plugin.yaml", "profile": "gpu-nvidia" },
+              { "name": "amd",    "manifest": "smoothnas-plugin-amd.yaml", "profile": "gpu-amd" },
+              { "name": "intel",  "manifest": "smoothnas-plugin-intel.yaml", "profile": "gpu-intel" }
+            ],
+            "profiles": [
+              { "name": "wolf-runtime", "manifest": "wolf-runtime-profile.yaml" }
+            ]
+          }
+          EOF
+          ls -l release/
+
+      - name: Attach manifests to release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: |
+            release/smoothnas-plugin.yaml
+            release/smoothnas-plugin-amd.yaml
+            release/smoothnas-plugin-intel.yaml
+            release/wolf-runtime-profile.yaml
+            release/index.json
