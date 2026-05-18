@@ -40,6 +40,8 @@ Current SmoothNAS builds show one Wolf card in the plugin catalog and already ca
 
 The plugin also mounts a flat runtime volume at `/run/user/wolf` for Wolf sockets used by per-session containers.
 
+`WOLF_IMAGE_TAG` defaults to `fedora-43` and controls the Games-on-Whales app images seeded into Wolf's `config.toml` plus the default PulseAudio helper image. Change it during install or later from the SmoothNAS plugin config to move the default app images to another tag. Set `WOLF_PULSE_IMAGE` only when you need to override the full PulseAudio image reference.
+
 ## Exposed Ports
 
 Wolf expects the standard Moonlight ports to be reachable directly:
