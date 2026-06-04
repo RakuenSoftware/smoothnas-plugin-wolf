@@ -9,7 +9,7 @@ ARG WOLF_BASE=ghcr.io/games-on-whales/wolf:stable
 FROM ${WOLF_BASE}
 
 ENV HOST_APPS_STATE_FOLDER=/etc/wolf \
-    XDG_RUNTIME_DIR=/run/user/wolf \
+    XDG_RUNTIME_DIR=/var/lib/smoothnas/plugins/wolf/runtime \
     WOLF_DOCKER_SOCKET=/var/run/docker.sock \
     WOLF_IMAGE_TAG=fedora-43 \
     WOLF_PULSE_IMAGE=
