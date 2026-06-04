@@ -42,6 +42,11 @@ volumes:
     bind: /var/lib/smoothnas/plugins/wolf/runtime
 
 ports:
+  - name: wolf-den
+    port: 8080
+    protocol: tcp
+    expose: false
+    hostExpose: true
   - name: https
     port: 47984
     protocol: tcp
