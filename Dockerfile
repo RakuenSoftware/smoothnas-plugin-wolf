@@ -22,8 +22,10 @@ ENV HOST_APPS_STATE_FOLDER=/etc/wolf \
 # SmoothNAS plugins are single-container, so bundle Wolf Den (WolfLeash)
 # alongside Wolf. Pull the published app and the .NET runtime it was built
 # against straight from the upstream wolf-den image (a dotnet/aspnet:9.0
-# base), then run it as an s6 service that talks to Wolf's API socket at
-# ${XDG_RUNTIME_DIR}/wolf.sock locally.
+# base). Upstream Wolf runs /wolf/wolf as PID 1 via /entrypoint.sh and ships
+# no s6 supervisor, so Wolf Den cannot be an /etc/services.d unit (those are
+# never executed here). Instead a wrapper entrypoint launches Wolf Den in the
+# background and execs Wolf's real entrypoint, keeping Wolf as PID 1.
 COPY --from=wolfden /app /opt/wolf-den
 COPY --from=wolfden /usr/share/dotnet /usr/share/dotnet
 RUN set -e; \
@@ -34,7 +36,9 @@ RUN set -e; \
         rm -rf /var/lib/apt/lists/*; \
     fi; \
     dotnet --info >/dev/null
-COPY --chmod=755 services.d/wolf-den/run /etc/services.d/wolf-den/run
+COPY --chmod=755 wolf-den-launch.sh /opt/wolf-den/launch.sh
+COPY --chmod=755 wolf-den-entrypoint.sh /opt/wolf-den/entrypoint.sh
+ENTRYPOINT ["/opt/wolf-den/entrypoint.sh"]
 EXPOSE 8080
 # --------------------------------------------------------------------------
 
