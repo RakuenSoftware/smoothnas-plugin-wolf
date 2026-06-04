@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.2.3...v0.3.0) (2026-06-04)
+
+
+### Features
+
+* **manifest:** migrate smoothnas-plugin-amd.yaml to compose-services schema ([0a7d888](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/0a7d88818e80ca94afbc2f88305f10a4dc4be5c5))
+* **manifest:** migrate smoothnas-plugin-intel.yaml to compose-services schema ([263b33b](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/263b33bd27659fe4c83da82a7d2c38023d801f4b))
+* **manifest:** migrate smoothnas-plugin.yaml to compose-services schema ([455562f](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/455562f2a50c4bc71bb6e8a6c1fe651711b2f218))
+* **manifest:** migrate to compose-services schema ([c44625b](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/c44625b61cca75beb6bbf3995e88c3e7d6b24bab))
+
 ## [0.2.3](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.2.2...v0.2.3) (2026-06-04)
 
 

@@ -5,7 +5,7 @@ kind: Plugin
 
 metadata:
   name: wolf
-  version: 0.2.4 # x-release-please-version
+  version: 0.3.0 # x-release-please-version
   description: |
     Games-on-Whales Wolf game streaming host for Moonlight clients
     with Intel GPU access through /dev/dri.
@@ -21,7 +21,7 @@ services:
   - name: wolf
     artifact:
       type: oci-image
-      image: ghcr.io/rakuensoftware/smoothnas-plugin-wolf:0.2.4 # x-release-please-version
+      image: ghcr.io/rakuensoftware/smoothnas-plugin-wolf:0.3.0 # x-release-please-version
 
     container:
       command: []
