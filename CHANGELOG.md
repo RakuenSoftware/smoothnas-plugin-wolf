@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.3](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.2.2...v0.2.3) (2026-06-04)
+
+
+### Bug Fixes
+
+* **wolf-den:** add entrypoint wrapper that backgrounds Wolf Den then execs Wolf ([2a8b7d9](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/2a8b7d9422754a61b6f0e1d1abde3f73f4c945c3))
+* **wolf-den:** launch via entrypoint wrapper, not s6 ([31a1984](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/31a198438b00f38e60ea369417d2cac5ea499113))
+* **wolf-den:** remove dead /etc/services.d unit (no s6 in base image) ([c0dd553](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/c0dd55310901010334b974b5d7e1fdaec353cdf4))
+* **wolf-den:** start via entrypoint wrapper, not a dead s6 unit ([3f988fd](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/3f988fd592f895ba51cb0c9b1db0594d008f273f))
+* **wolf-den:** start Wolf Den from an entrypoint wrapper instead of a dead s6 unit ([b32c156](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/b32c1569f3278afd8b6ce3f21f3c52568bda5446))
+
 ## [0.2.2](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.2.1...v0.2.2) (2026-06-04)
 
 
