@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.2.0...v0.2.1) (2026-06-04)
+
+
+### Bug Fixes
+
+* **runtime:** identity-map XDG_RUNTIME_DIR so sibling mounts resolve ([#5](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/issues/5)) ([bcf1ee0](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/bcf1ee02b2d9f71b4ce7f566ea35a2fb6dc42234))
+
 ## [0.2.0](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.1.0...v0.2.0) (2026-05-18)
 
 
