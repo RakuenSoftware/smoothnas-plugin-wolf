@@ -11,7 +11,7 @@ metadata:
 container:
   env:
     HOST_APPS_STATE_FOLDER: /etc/wolf
-    XDG_RUNTIME_DIR: /run/user/wolf
+    XDG_RUNTIME_DIR: /var/lib/smoothnas/plugins/wolf/runtime
     WOLF_DOCKER_SOCKET: /var/run/docker.sock
   hostConfig:
     devices:

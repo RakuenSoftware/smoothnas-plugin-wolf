@@ -30,7 +30,7 @@ volumes:
     bind: /etc/wolf
   - name: runtime
     mode: flat
-    bind: /run/user/wolf
+    bind: /var/lib/smoothnas/plugins/wolf/runtime
 
 ports:
   - name: https
@@ -123,3 +123,13 @@ config:
       - value: "TRUE"
       - value: "FALSE"
     description: Enables Wolf's zero-copy GStreamer path.
+  - key: XDG_RUNTIME_DIR
+    type: string
+    label: Runtime dir
+    default: /var/lib/smoothnas/plugins/wolf/runtime
+    description: |
+      Wolf XDG runtime dir. Must equal the host path of the 'runtime' volume
+      so the sockets Wolf bind-mounts into sibling containers (PulseAudio and
+      app containers) resolve on the host. Wolf can't introspect its own
+      container under the SmoothNAS LXC runtime, so it uses this path verbatim
+      as the sibling-mount source; identity-mapping it is what makes that work.
