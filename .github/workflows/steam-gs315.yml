@@ -1,9 +1,12 @@
 name: Build steam (gamescope pinned)
 
-# Manual-only: builds a gow steam:fedora-43 image with gamescope pinned to a
-# 3.15.x release (workaround for the 3.16.x Wine raw-input regression).
-# Does not participate in the plugin (release-please) release flow.
+# Builds a gow steam:fedora-43 image with gamescope pinned to a 3.15.x release
+# (workaround for the 3.16.x Wine raw-input regression). Runs on push to the
+# build branch and via manual dispatch. Does not participate in the plugin
+# (release-please) release flow.
 on:
+  push:
+    branches: [feat/steam-gamescope-3.15.17]
   workflow_dispatch:
     inputs:
       gamescope_version:
@@ -22,6 +25,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      GAMESCOPE_VERSION: ${{ github.event.inputs.gamescope_version || '3.15.17' }}
+      IMAGE_TAG: ${{ github.event.inputs.image_tag || 'fedora-43-gs3.15.17' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +48,7 @@ jobs:
         with:
           context: images/steam-gamescope315
           push: true
-          tags: ghcr.io/rakuensoftware/steam:${{ inputs.image_tag }}
+          tags: ghcr.io/rakuensoftware/steam:${{ env.IMAGE_TAG }}
           build-args: |
-            GAMESCOPE_VERSION=${{ inputs.gamescope_version }}
+            GAMESCOPE_VERSION=${{ env.GAMESCOPE_VERSION }}
           provenance: false
