@@ -1,0 +1,38 @@
+name: Verify gamescope image
+
+# Inspects the built custom steam image (binary health, lib resolution, Vulkan
+# WSI layer state) without touching the appliance. No GPU in CI, so this checks
+# everything except actual GPU init.
+on:
+  push:
+    branches: [feat/steam-gamescope-3.15.17]
+    paths: ['.github/workflows/gs-verify.yml']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    env:
+      IMG: ghcr.io/rakuensoftware/steam:fedora-43-gs3.15.17
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull
+        run: docker pull "$IMG"
+      - name: gamescope --version
+        run: docker run --rm --entrypoint bash "$IMG" -c 'gamescope --version 2>&1 | head; echo "exit=$?"'
+      - name: lib resolution
+        run: docker run --rm --entrypoint bash "$IMG" -c 'ldd /usr/bin/gamescope 2>&1 | grep -i "not found" || echo "ALL LIBS RESOLVED"'
+      - name: gamescope binaries
+        run: docker run --rm --entrypoint bash "$IMG" -c 'ls -la /usr/bin/gamescope* 2>&1'
+      - name: Vulkan WSI implicit layers (look for duplicates / mismatch)
+        run: docker run --rm --entrypoint bash "$IMG" -c 'echo "--- implicit_layer.d ---"; ls -la /usr/share/vulkan/implicit_layer.d/ 2>&1; echo "--- gamescope layer json(s) ---"; for f in /usr/share/vulkan/implicit_layer.d/*amescope*; do echo "== $f =="; cat "$f"; done 2>&1; echo "--- wsi .so files ---"; find /usr -name "*gamescope_wsi*" 2>&1'
+      - name: launch scripts present
+        run: docker run --rm --entrypoint bash "$IMG" -c 'ls -la /opt/gow/ 2>&1 | head; echo "---"; command -v gamescope; head -2 /opt/gow/startup.sh 2>/dev/null || true'

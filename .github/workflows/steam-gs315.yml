@@ -7,6 +7,9 @@ name: Build steam (gamescope pinned)
 on:
   push:
     branches: [feat/steam-gamescope-3.15.17]
+    paths:
+      - 'images/steam-gamescope315/**'
+      - '.github/workflows/steam-gs315.yml'
   workflow_dispatch:
     inputs:
       gamescope_version:
