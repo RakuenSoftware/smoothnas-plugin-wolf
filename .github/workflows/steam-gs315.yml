@@ -1,0 +1,48 @@
+name: Build steam (gamescope pinned)
+
+# Manual-only: builds a gow steam:fedora-43 image with gamescope pinned to a
+# 3.15.x release (workaround for the 3.16.x Wine raw-input regression).
+# Does not participate in the plugin (release-please) release flow.
+on:
+  workflow_dispatch:
+    inputs:
+      gamescope_version:
+        description: 'gamescope git tag to build (e.g. 3.15.17)'
+        required: true
+        default: '3.15.17'
+      image_tag:
+        description: 'Published tag under ghcr.io/rakuensoftware/steam'
+        required: true
+        default: 'fedora-43-gs3.15.17'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android || true
+          df -h /
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: images/steam-gamescope315
+          push: true
+          tags: ghcr.io/rakuensoftware/steam:${{ inputs.image_tag }}
+          build-args: |
+            GAMESCOPE_VERSION=${{ inputs.gamescope_version }}
+          provenance: false
