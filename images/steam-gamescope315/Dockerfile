@@ -14,7 +14,8 @@ ARG GAMESCOPE_VERSION=3.15.17
 FROM fedora:43 AS gsbuild
 ARG GAMESCOPE_VERSION
 RUN set -eux; \
-    dnf install -y dnf-plugins-core git meson ninja-build gcc gcc-c++ glslang cmake hwdata; \
+    dnf install -y dnf-plugins-core git meson ninja-build gcc gcc-c++ glslang cmake hwdata \
+        xorg-x11-server-Xwayland xorg-x11-server-Xwayland-devel; \
     dnf builddep -y gamescope; \
     dnf clean all
 RUN set -eux; \
