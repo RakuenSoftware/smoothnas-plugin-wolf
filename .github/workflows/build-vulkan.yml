@@ -37,13 +37,16 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Compute lowercase image ref
         id: image
-        run: echo "ref=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+        run: |
+          TAG="${{ inputs.tag }}"
+          [ -z "$TAG" ] && TAG="vulkan-test"
+          echo "ref=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${TAG}" >> "$GITHUB_OUTPUT"
       - name: Build + push (vulkan base)
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           build-args: |
-            WOLF_BASE=${{ inputs.wolf_base }}
+            WOLF_BASE=${{ inputs.wolf_base || 'ghcr.io/games-on-whales/wolf:vulkan' }}
           tags: ${{ steps.image.outputs.ref }}
           provenance: false
