@@ -28,12 +28,24 @@ ENV HOST_APPS_STATE_FOLDER=/etc/wolf \
 # background and execs Wolf's real entrypoint, keeping Wolf as PID 1.
 COPY --from=wolfden /app /opt/wolf-den
 COPY --from=wolfden /usr/share/dotnet /usr/share/dotnet
+# Install socat (Wolf Den local API proxy) and the .NET native deps (libicu).
+# The base distro depends on WOLF_BASE: wolf:stable is Debian (apt), wolf:vulkan
+# is Fedora (dnf), so install with whichever package manager is present.
 RUN set -e; \
     ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet; \
-    if ! command -v socat >/dev/null 2>&1; then \
+    if command -v apt-get >/dev/null 2>&1; then \
         apt-get update; \
-        apt-get install -y --no-install-recommends socat; \
+        apt-get install -y --no-install-recommends socat libicu72 || \
+            apt-get install -y --no-install-recommends socat libicu; \
         rm -rf /var/lib/apt/lists/*; \
+    elif command -v dnf >/dev/null 2>&1; then \
+        dnf install -y socat libicu findutils; \
+        dnf clean all; \
+    elif command -v microdnf >/dev/null 2>&1; then \
+        microdnf install -y socat libicu findutils; \
+        microdnf clean all; \
+    else \
+        echo "no supported package manager to install socat/libicu" >&2; exit 1; \
     fi; \
     dotnet --info >/dev/null
 COPY --chmod=755 wolf-den-launch.sh /opt/wolf-den/launch.sh

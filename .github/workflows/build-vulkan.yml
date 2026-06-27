@@ -1,0 +1,50 @@
+name: build-vulkan
+
+# On-demand build of the Vulkan variant: same SmoothNAS packaging
+# (sibling PulseAudio + default-config.toml seed) on the wolf :vulkan base,
+# so the SmoothNAS image gains the Vulkan-Video H.264 encode path
+# (vulkanh264enc / WOLF_VULKAN_LINEAR_ENCSRC) without the upstream :vulkan
+# image's embedded-root-pulse startup.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to push (under smoothnas-plugin-wolf)'
+        default: 'vulkan'
+        required: true
+      wolf_base:
+        description: 'Wolf base image'
+        default: 'ghcr.io/games-on-whales/wolf:vulkan'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute lowercase image ref
+        id: image
+        run: |
+          TAG="${{ inputs.tag }}"
+          [ -z "$TAG" ] && TAG="vulkan-test"
+          echo "ref=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${TAG}" >> "$GITHUB_OUTPUT"
+      - name: Build + push (vulkan base)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          build-args: |
+            WOLF_BASE=${{ inputs.wolf_base || 'ghcr.io/games-on-whales/wolf:vulkan' }}
+          tags: ${{ steps.image.outputs.ref }}
+          provenance: false

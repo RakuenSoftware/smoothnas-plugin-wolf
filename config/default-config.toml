@@ -444,6 +444,28 @@ h264parse !
 video/x-h264, profile=main, stream-format=byte-stream\
 """
 
+# Native Vulkan Video zero-copy encode (waylanddisplaysrc vulkan=true emits NV12 memory:VulkanImage).
+# Gated by check_elements: only selected when the image provides vulkanh264enc (the :vulkan wolf
+# build), so it's inert on the stable/VA/NVENC images. Placed after nvcodec so NVIDIA hosts keep
+# preferring NVENC, but before VA so an AMD :vulkan host picks the Vulkan-encode path (incl. the
+# WOLF_VULKAN_LINEAR_ENCSRC RDNA4 workaround). HEVC/AV1 Vulkan encode aren't exposed by Mesa/RADV
+# yet, so only H.264 is provided here.
+[[gstreamer.video.h264_encoders]]
+plugin_name = "vulkan"
+check_elements = ["vulkanh264enc"]
+encoder_pipeline = """
+vulkanh264enc aud=false quality={vk_quality} num-ref-frames={vk_ref_frames} b-frames={vk_b_frames} bitrate={bitrate} rate-control=cbr min-qp=20 idr-period=1024 !
+h264parse !
+video/x-h264, profile=main, stream-format=byte-stream\
+"""
+# waylanddisplaysrc vulkan=true already emits NV12 memory:VulkanImage at the session
+# resolution/framerate, so the zero-copy path needs no videoscale/videoconvert/videorate -- those
+# CPU elements can't negotiate the VulkanImage memory feature (the default zero-copy params would
+# inject them and fail with not-negotiated). Just a decoupling queue.
+video_params_zero_copy = """
+queue\
+"""
+
 [[gstreamer.video.h264_encoders]]
 plugin_name = "va"
 check_elements = ["vah264enc", "vapostproc"]
