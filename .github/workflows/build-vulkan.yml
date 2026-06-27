@@ -6,8 +6,6 @@ name: build-vulkan
 # (vulkanh264enc / WOLF_VULKAN_LINEAR_ENCSRC) without the upstream :vulkan
 # image's embedded-root-pulse startup.
 on:
-  push:
-    branches: [feat/vulkan-variant]
   workflow_dispatch:
     inputs:
       tag:
