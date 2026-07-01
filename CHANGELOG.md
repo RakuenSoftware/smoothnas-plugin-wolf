@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.3.0...v0.4.0) (2026-07-01)
+
+
+### Features
+
+* compose-native wolf plugin variants (plugins-11) ([#18](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/issues/18)) ([e3a08d1](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/e3a08d19fbf2723c4115e234f59ca72408679d16))
+* declare Wolf container refs ([d74bd67](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/d74bd6775adc442bb49b0f78c881542bf76f0dd6))
+* Vulkan variant of the wolf plugin image (vulkanh264enc, sibling pulse) ([#17](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/issues/17)) ([026416e](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/commit/026416e08cc0c6a7e7d0031021080913452b959f))
+
 ## [0.3.0](https://github.com/RakuenSoftware/smoothnas-plugin-wolf/compare/v0.2.3...v0.3.0) (2026-06-04)
 
 
