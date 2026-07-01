@@ -1,0 +1,58 @@
+# Wolf (Games-on-Whales) — SmoothNAS compose-native plugin, AMD variant.
+#
+# Migrated from smoothnas-plugin-amd.yaml (+ the wolf-runtime profile), which
+# LXC2Docker honors via standard compose (see docs/compose-plugins.md):
+#   - devices: bind + auto cgroup-allow (uinput/uhid/dri)
+#   - device_cgroup_rules: the exact cgroup allows the profile set in rawConfig
+#   - cap_add: the profile's capabilities
+#   - the runtime socket + udev are plain host bind mounts
+#
+# Wolf is a control plane: it launches per-session app containers (firefox, steam,
+# retroarch, ...) ON DEMAND through the mounted runtime socket — those are NOT
+# compose services, so (unlike the manifest's containerRefs) they are pulled on
+# first use rather than pre-pulled. XDG_RUNTIME_DIR is identity-mapped
+# (host path == container path) so the sockets Wolf bind-mounts into its sibling
+# containers resolve on the host. Set `x-smoothnas.tier` to an SSD pool.
+name: wolf
+services:
+  wolf:
+    image: ghcr.io/rakuensoftware/smoothnas-plugin-wolf:0.3.0
+    restart: unless-stopped
+    mem_limit: ${WOLF_MEMORY_LIMIT:-8GiB}
+    environment:
+      HOST_APPS_STATE_FOLDER: /etc/wolf
+      XDG_RUNTIME_DIR: /var/lib/smoothnas/plugins/wolf/runtime
+      WOLF_DOCKER_SOCKET: /var/run/docker.sock
+      WOLF_LOG_LEVEL: ${WOLF_LOG_LEVEL:-INFO}
+      WOLF_IMAGE_TAG: ${WOLF_IMAGE_TAG:-fedora-43}
+      WOLF_RENDER_NODE: ${WOLF_RENDER_NODE:-/dev/dri/renderD128}
+      WOLF_STOP_CONTAINER_ON_EXIT: ${WOLF_STOP_CONTAINER_ON_EXIT:-TRUE}
+      WOLF_USE_ZERO_COPY: ${WOLF_USE_ZERO_COPY:-TRUE}
+    cap_add: [NET_RAW, MKNOD, NET_ADMIN, SYS_ADMIN, SYS_NICE]
+    devices:
+      - "/dev/uinput:/dev/uinput"
+      - "/dev/uhid:/dev/uhid"
+      - "/dev/dri:/dev/dri" # GPU render path
+    device_cgroup_rules:
+      - "c 10:223 rwm" # uinput
+      - "c 10:239 rwm" # uhid
+      - "c 13:* rwm"   # input
+      - "c 244:* rwm"
+    volumes:
+      - /run/smoothnas-runtime/docker.sock:/var/run/docker.sock
+      - /run/udev:/run/udev
+      - /dev/input:/dev/input
+      - wolf-state:/etc/wolf
+      # identity-mapped runtime dir (host path == container path; see above)
+      - /var/lib/smoothnas/plugins/wolf/runtime:/var/lib/smoothnas/plugins/wolf/runtime
+    ports:
+      - "8080:8080"       # wolf-den control UI
+      - "47984:47984"     # https
+      - "47989:47989"     # http
+      - "47999:47999/udp" # control
+      - "48010:48010"     # rtsp
+      - "48100:48100/udp" # video
+      - "48200:48200/udp" # audio
+volumes:
+  wolf-state:
+    x-smoothnas: { tier: wolf-ssd, minSize: 100G }

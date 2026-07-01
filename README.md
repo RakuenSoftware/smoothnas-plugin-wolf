@@ -12,6 +12,28 @@ Wolf is a different shape from the llama.cpp and gh-runner reference plugins: th
 | `smoothnas-plugin-amd.yaml` | `gpu-amd` | Host has an AMD GPU |
 | `smoothnas-plugin-intel.yaml` | `gpu-intel` | Host has an Intel iGPU |
 
+
+## Compose-native variants (plugins-11)
+
+SmoothNAS plugins can now be installed as docker-compose projects directly (tierd
+drives `docker compose` against LXC2Docker). `deploy/compose/` holds compose-native
+equivalents of the three manifests:
+
+| Compose file | GPU |
+|--------------|-----|
+| `deploy/compose/wolf.compose.yaml` | NVIDIA (CDI via `deploy.resources`) |
+| `deploy/compose/wolf-amd.compose.yaml` | AMD (`/dev/dri`) |
+| `deploy/compose/wolf-intel.compose.yaml` | Intel (`/dev/dri`) |
+
+The `wolf-runtime` profile maps to standard compose that LXC2Docker honors:
+`devices:` (uinput/uhid + GPU render node, bound with auto cgroup-allow),
+`device_cgroup_rules:` (the exact allows the profile set), `cap_add:`, and plain
+host bind mounts for the runtime socket + udev. State lives on a smoothfs SSD tier
+via `x-smoothnas`; set `tier:` to your pool. Wolf still launches per-session app
+containers on demand through the mounted socket — those are pulled on first use
+(the manifest's `containerRefs` pre-pull has no compose analogue). See the SmoothNAS
+`docs/compose-plugins.md` authoring guide.
+
 All variants use the same image: `ghcr.io/rakuensoftware/smoothnas-plugin-wolf:VERSION`. The release workflow builds that image from upstream `ghcr.io/games-on-whales/wolf:stable`, pins the pushed digest, and attaches digest-pinned manifests to each GitHub release.
 
 ## Protocol Requirements
