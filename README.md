@@ -105,3 +105,7 @@ To sideload a dev image into a SmoothNAS test host, edit the chosen manifest's `
 ## License
 
 Add a LICENSE file at publish time. This repo only contains SmoothNAS packaging. Upstream Wolf and its image layers carry their own license terms.
+
+## License
+
+This plugin is licensed under the [AGPL-3.0](LICENSE).
